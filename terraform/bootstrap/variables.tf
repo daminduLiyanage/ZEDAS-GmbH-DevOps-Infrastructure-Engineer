@@ -8,7 +8,7 @@ variable "location" {
 }
 
 variable "storage_account_name" {
-  description = "terraform state storage account" 
+  description = "terraform state storage account"
   type        = string
   default     = "zedasterraformstate"
 }
