@@ -43,7 +43,7 @@ resource "azurerm_storage_account" "backend_sa" {
 }
 
 resource "azurerm_storage_container" "tfstate" {
-  name               = var.container_name
-  storage_account_id = azurerm_storage_account.backend_sa.id
+  name                  = var.container_name
+  storage_account_id    = azurerm_storage_account.backend_sa.id
   container_access_type = "private"
 }
