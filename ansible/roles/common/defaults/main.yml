@@ -1,0 +1,6 @@
+---
+# defaults for common role
+common_packages:
+  - htop
+  - git
+  - unzip

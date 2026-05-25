@@ -1,0 +1,50 @@
+---
+# tasks file for roles/common
+- name: Update apt cache (Debian family)
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_os_family == 'Debian'
+
+- name: Ensure common packages are installed (Debian family)
+  apt:
+    name: "{{ common_packages }}"
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Create deploy user
+  user:
+    name: "{{ deploy_user }}"
+    groups: sudo
+    shell: /bin/bash
+    createhome: yes
+    state: present
+
+- name: Ensure .ssh directory exists for deploy user
+  file:
+    path: "/home/{{ deploy_user }}/.ssh"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: '0700'
+
+- name: Install authorized keys for deploy user
+  copy:
+    src: authorized_keys
+    dest: "/home/{{ deploy_user }}/.ssh/authorized_keys"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: '0600'
+
+- name: Deploy MOTD
+  template:
+    src: motd.j2
+    dest: /etc/motd
+    owner: root
+    mode: '0644'
+
+- name: Ensure unattended-upgrades is installed (Debian family)
+  apt:
+    name: unattended-upgrades
+    state: present
+  when: ansible_os_family == 'Debian'
