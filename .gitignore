@@ -51,3 +51,6 @@ ansible/backend.hcl
 
 # Ignore any generated facts or temporary output
 ansible/facts/
+
+# Local ansible private keys
+ansible/keys/

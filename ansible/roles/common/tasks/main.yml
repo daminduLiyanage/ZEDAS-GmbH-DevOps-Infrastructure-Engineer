@@ -1,16 +1,15 @@
 ---
-# tasks file for roles/common
-- name: Update apt cache (Debian family)
+# Minimal common tasks for Ubuntu
+
+- name: Update apt cache
   apt:
     update_cache: yes
     cache_valid_time: 3600
-  when: ansible_os_family == 'Debian'
 
-- name: Ensure common packages are installed (Debian family)
+- name: Ensure common packages are installed
   apt:
     name: "{{ common_packages }}"
     state: present
-  when: ansible_os_family == 'Debian'
 
 - name: Create deploy user
   user:
@@ -43,8 +42,3 @@
     owner: root
     mode: '0644'
 
-- name: Ensure unattended-upgrades is installed (Debian family)
-  apt:
-    name: unattended-upgrades
-    state: present
-  when: ansible_os_family == 'Debian'
