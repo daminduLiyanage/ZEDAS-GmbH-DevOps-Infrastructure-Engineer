@@ -1,5 +1,5 @@
-variable "customer_name" {
-  description = "Short name for the customer used as a prefix for resources"
+variable "main_resource_group_name" {
+  description = "Name of the main resource group"
   type        = string
 }
 
@@ -22,16 +22,16 @@ variable "admin_username" {
 }
 
 variable "admin_ssh_public_key" {
-  description = "SSH public key to provision for the admin user. Leave empty to generate a key locally (not recommended for production)."
+  description = "(starts with ssh-rsa)"
   type        = string
-  default     = ""
 }
 
 variable "ssh_allowed_cidr" {
   description = "CIDR range allowed to SSH into VM (e.g. your public IP as /32). This is required to avoid exposing SSH to the world."
   type        = string
+
   validation {
-    condition     = can(regex("^([0-9]{1,3}\\\\.){3}[0-9]{1,3}\\/([1-9][0-9]?|0)$", var.ssh_allowed_cidr))
+    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[1-2][0-9]|3[0-2])$", var.ssh_allowed_cidr))
     error_message = "ssh_allowed_cidr must be a valid IPv4 CIDR (for example: 203.0.113.45/32)"
   }
 }

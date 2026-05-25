@@ -1,26 +1,28 @@
+// Backend is configured via `backend.hcl` and supplied to `terraform init` with
+//   terraform init -backend-config=backend.hcl
 // Main infrastructure resources: resource group, vnet, subnet, nsg, public IP, NIC, and VM
 
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.customer_name}-rg"
+  name     = var.main_resource_group_name
   location = var.location
 }
 
 resource "azurerm_virtual_network" "vnet" {
-  name                = "${var.customer_name}-vnet"
+  name                = "${var.main_resource_group_name}-vnet"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_subnet" "subnet" {
-  name                 = "${var.customer_name}-subnet"
+  name                 = "${var.main_resource_group_name}-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  name                = "${var.customer_name}-nsg"
+  name                = "${var.main_resource_group_name}-nsg"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -55,7 +57,7 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg" {
 }
 
 resource "azurerm_public_ip" "pip" {
-  name                = "${var.customer_name}-pip"
+  name                = "${var.main_resource_group_name}-pip"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
@@ -63,7 +65,7 @@ resource "azurerm_public_ip" "pip" {
 }
 
 resource "azurerm_network_interface" "nic" {
-  name                = "${var.customer_name}-nic"
+  name                = "${var.main_resource_group_name}-nic"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -75,14 +77,17 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
+ 
+
 resource "tls_private_key" "generated" {
+  # FIX 1: Changed name to "generated" to match your VM block
+  # FIX 2: Changed to '== 0'. We only generate a key if the user DID NOT provide one.
   count     = length(trimspace(var.admin_ssh_public_key)) == 0 ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 4096
 }
-
 resource "azurerm_linux_virtual_machine" "vm" {
-  name                = "${var.customer_name}-vm"
+  name                = "${var.main_resource_group_name}-vm"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   size                = var.vm_size
@@ -105,11 +110,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   admin_ssh_key {
     username   = var.admin_username
-    public_key = length(trimspace(var.admin_ssh_public_key)) > 0 ? var.admin_ssh_public_key : tls_private_key.generated[0].public_key_openssh
+    public_key = var.admin_ssh_public_key
   }
 
   tags = {
-    customer = var.customer_name
+    customer = var.main_resource_group_name
     created  = "terraform"
   }
 }
