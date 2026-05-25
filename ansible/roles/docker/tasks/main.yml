@@ -43,3 +43,19 @@
     name: "{{ deploy_user }}"
     groups: docker
     append: yes
+
+- name: Ensure docker group exists
+  ansible.builtin.group:
+    name: docker
+    state: present
+  become: true
+
+- name: Add deploy user to docker group
+  ansible.builtin.user:
+    name: "{{ deploy_user }}"  # Or your specific deploy user variable
+    groups: docker
+    append: yes
+  become: true
+
+- name: Reset SSH connection to apply group changes
+  ansible.builtin.meta: reset_connection
