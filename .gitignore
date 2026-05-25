@@ -21,3 +21,33 @@ override.tf.json
 
 # Backend configuration
 terraform/backend.hcl
+
+# Ansible local files to ignore
+# Inventory and host vars that may contain IPs and credentials
+ansible/inventory.ini
+ansible/inventory
+
+# Private keys and SSH files
+**/ssh_private_key
+**/id_rsa
+**/id_ecdsa
+**/id_ed25519
+
+# Ansible Vault password files
+*.vault
+vault_password.txt
+vault-password.txt
+
+# Ansible retry files
+**/*.retry
+
+# Local role/collection caches or virtualenvs
+.venv/
+venv/
+env/
+
+# Backend config (local copies)
+ansible/backend.hcl
+
+# Ignore any generated facts or temporary output
+ansible/facts/
