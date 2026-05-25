@@ -1,48 +1,5 @@
 ---
-
-# Minimal Docker install for Ubuntu Jammy
-
-- name: Install prerequisites
-  apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg
-      - lsb-release
-    state: present
-    update_cache: yes
-
-- name: Add Docker GPG key
-  apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
-
-- name: Add Docker apt repository
-  apt_repository:
-    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
-    state: present
-
-- name: Install Docker packages
-  apt:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-    state: present
-    update_cache: yes
-
-- name: Ensure docker service is started and enabled
-  service:
-    name: docker
-    state: started
-    enabled: yes
-
-- name: Add deploy user to docker group
-  user:
-    name: "{{ deploy_user }}"
-    groups: docker
-    append: yes
+# Dedicated Docker installation & Nginx Deployment
 
 - name: Ensure docker group exists
   ansible.builtin.group:
@@ -50,12 +7,71 @@
     state: present
   become: true
 
+- name: Add Docker official GPG key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  become: true
+  check_mode: no  # <-- Forces key integration during dry-runs
+
+- name: Add Docker apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+  become: true
+  check_mode: no  # <-- Forces repo listing to write during dry-runs
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+  become: true
+
+- name: Ensure docker service is started and enabled
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: yes
+  become: true
+  ignore_errors: "{{ ansible_check_mode }}"  # <-- Avoids service start during dry-runs, but allows it during normal runs
+
 - name: Add deploy user to docker group
   ansible.builtin.user:
-    name: "{{ deploy_user }}"  # Or your specific deploy user variable
+    name: "{{ deploy_user }}"
     groups: docker
     append: yes
   become: true
 
-- name: Reset SSH connection to apply group changes
+# --- CONNECTION RESET FOR PERMISSIONS ---
+- name: Reset SSH connection to apply docker group membership instantly
   ansible.builtin.meta: reset_connection
+
+# Install Python SDK so Ansible can communicate with the local Docker daemon socket
+- name: Install compatible Python docker SDK packages via pip3
+  ansible.builtin.pip:
+    name:
+      - "docker==6.1.3"
+      - "requests==2.31.0"
+    executable: pip3
+  become: true
+
+# --- TARGET APPLICATION DEPLOYMENT ---
+- name: Pull nginx:alpine image
+  community.docker.docker_image:
+    name: nginx:alpine
+    source: pull
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Run nginx container on port 80
+  community.docker.docker_container:
+    name: nginx_web
+    image: nginx:alpine
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "80:80"
+  ignore_errors: "{{ ansible_check_mode }}"
