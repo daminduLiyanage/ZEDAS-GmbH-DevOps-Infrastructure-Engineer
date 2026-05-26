@@ -1,0 +1,10 @@
+---
+# defaults for common role
+common_packages:
+  - htop
+  - git
+  - unzip
+  - python3-pip
+  - ca-certificates
+  - curl
+  - gnupg

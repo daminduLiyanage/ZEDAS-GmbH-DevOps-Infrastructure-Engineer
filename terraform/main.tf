@@ -1,6 +1,9 @@
 // Backend is configured via `backend.hcl` and supplied to `terraform init` with
 //   terraform init -backend-config=backend.hcl
 // Main infrastructure resources: resource group, vnet, subnet, nsg, public IP, NIC, and VM
+terraform {
+  backend "azurerm" {}
+}
 
 resource "azurerm_resource_group" "rg" {
   name     = var.main_resource_group_name

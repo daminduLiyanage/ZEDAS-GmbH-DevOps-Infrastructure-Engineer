@@ -1,0 +1,4 @@
+---
+# Defaults for docker role
+docker_users:
+  - "{{ deploy_user | default('azureuser') }}"
