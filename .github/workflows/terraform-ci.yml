@@ -1,4 +1,10 @@
 name: Terraform CI
+on:
+  push:
+    branches: [ main, master, '**/feature/**', '**/bugfix/**' ]
+  pull_request:
+    branches: [ main, master ]
+
 jobs:
   setup:
     name: terraform-setup
@@ -48,16 +54,6 @@ jobs:
 
       - name: Terraform validate
         run: terraform validate
-
-      - name: Run tfsec security scan (docker)
-        run: |
-          docker run --rm -v "${{ github.workspace }}/terraform":/src aquasec/tfsec:latest /src
-          terraform init -backend=false
-
-      - name: Terraform validate
-        run: |
-          cd terraform
-          terraform validate
 
       - name: Run tfsec security scan (docker)
         run: |
