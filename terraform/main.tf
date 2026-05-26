@@ -80,7 +80,7 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
- 
+
 
 resource "tls_private_key" "generated" {
   # FIX 1: Changed name to "generated" to match your VM block
