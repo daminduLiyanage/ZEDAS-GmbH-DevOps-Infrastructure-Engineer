@@ -21,7 +21,15 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.9
+          terraform_version: latest
+
+      - name: Show terraform version
+        run: |
+          terraform -version
+
+      - name: Show docker version
+        run: |
+          docker --version || true
 
       - name: Terraform fmt (check)
         run: |
