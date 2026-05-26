@@ -83,7 +83,7 @@ jobs:
         run: |
           docker run --rm -v "${{ github.workspace }}/terraform":/src aquasec/tfsec:latest /src
 
-  # 5. Parallel Job: Ansible Lint
+  # 5. Parallel Job: Ansible Lint (Native Approach)
   ansible-lint:
     name: ansible-lint
     needs: setup
@@ -92,15 +92,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Force-install the required collection directly onto the GitHub runner
-      - name: Install Ansible Docker Collection
+      # 1. Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 2. Install ansible, the linter, and the docker collection together
+      - name: Install Ansible, Linter, and Collections
         run: |
+          pip install ansible-core ansible-lint
           ansible-galaxy collection install community.docker
 
+      # 3. Run the linter natively just like on your laptop
       - name: Run Ansible Lint
-        uses: ansible/ansible-lint@main
-        with:
-          working_directory: "ansible"
+        run: |
+          ansible-lint ansible/
 
   # 6. Conditional Job: Terraform Plan (Runs ONLY on main/master branches)
   plan:
