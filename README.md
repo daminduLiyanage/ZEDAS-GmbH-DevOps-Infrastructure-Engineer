@@ -125,7 +125,7 @@ cd ../..
 ansible-playbook site.yml -i inventory.ini --check
 ```
 
-> **Warning:** Some dependencies such as Python may cause later scripts to fail in check mode.
+> **Warning:** Note having some dependencies such as Python may cause check mode fail.
 
 ---
 
@@ -172,18 +172,54 @@ terraform destroy --auto-approve
 
 ## VM Unreachable Runbook
 
-The VM is unreachable. Walk through the following checks in order:
 
-- **Check the Azure portal** — confirm the VM is in a running state and has not been deallocated, stopped, or deleted.
-- **Verify the public IP** — ensure the IP address in your SSH command matches the current public IP assigned to the VM; Azure may reassign it on restart if a static IP is not configured.
-- **Check the Network Security Group (NSG)** — confirm that an inbound rule permits SSH (port 22) from your source IP. A missing or overly restrictive rule is the most common cause.
-- **Test basic connectivity** — run `ping <ip>` or `nc -zv <ip> 22` to determine whether the host is reachable at the network level at all.
-- **Verify SSH key permissions and format** — run `chmod 600 keys/id_rsa` and `ssh-keygen -y -f keys/id_rsa` to confirm the key is valid. Windows line endings can silently corrupt key files.
-- **Check the SSH command itself** — confirm the username (`azureuser`) and key path are correct. A wrong username will produce a `Permission denied` error that looks identical to a key problem.
-- **Review VM boot diagnostics** — in the Azure portal, open the VM's Boot Diagnostics blade to check for kernel panics, failed services, or disk errors that may have prevented a clean boot.
-- **Check resource health** — in the Azure portal, open the VM's Resource Health blade to see whether Azure has flagged any platform-level issues affecting the host.
-- **SSH with verbose output** — run `ssh -vvv -i keys/id_rsa azureuser@<ip>` to trace exactly where the handshake is failing.
-- **As a last resort** — use the Azure portal's Serial Console or Run Command feature to access the VM without SSH and inspect logs directly (`journalctl -xe`, `systemctl status sshd`).
+If the VM is unreachable try the following:
+
+1. **Check the Platform Power State**
+
+   `az vm get-instance-view --name <vm-name> --resource-group <rg-name> --query "instanceView.statuses[1].displayStatus"`
+   
+   Check if the VM is powered on through portal or this command.
+
+2. **Check Security Groups / Firewalls**
+   
+   `az network nsg rule list --nsg-name <nsg-name> --resource-group <rg-name> --output table`
+   
+   Check portal for Security groups. Check if the rules are not enabled or blocking. Ensure the Network Security Group in Azure explicitly allows Inbound TCP Port 22 from local machine's public IP address
+
+3. **Verify Public IP**
+
+   `ping <VM_IP>`
+   
+   Check if target address get resolved correctly.
+
+4. **Try SSH with Verbose**
+   
+   `ssh -vvv user@<VM_IP>`
+   
+   Trace the network hops to see exactly where the connection drops.
+
+5. **Port Query**
+   
+   `nc -zv <VM_IP> 22`
+   
+   Check if the specific remote management port handshake can complete.
+
+6. **Key not having permissions**
+   
+   `chmod 600 id_rsa`
+   
+   It could be the key that is not having permissions to read properly. 
+
+7. **Reset SSH Configuration**
+
+   Go to your VM page in the Azure Portal. Scroll down to Help, click Reset password, select Reset SSH configuration only, and apply it to fix.
+
+8. **Redeploy**
+
+    If nothing works try restarting through azure portal. Still if there is no sign try redeploying.
+
+
 
 ---
 
