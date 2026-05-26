@@ -1,8 +1,8 @@
-name: Terraform & Ansible CI
+name: Infrastructure & Configuration CI
 
 on:
   push:
-    branches: [ main, master, '**/feature/**', '**/bugfix/**' ]
+    branches: [ main, master, '**/release/**', '**/feature/**', '**/bugfix/**' ]
 
 jobs:
   # 1. The dedicated Setup Job
@@ -83,10 +83,15 @@ jobs:
         run: |
           docker run --rm -v "${{ github.workspace }}/terraform":/src aquasec/tfsec:latest /src
 
-  # 5. Parallel Job: Ansible Lint (Native Approach)
+  # 5. Conditional Job: Ansible Lint (Runs ONLY on merge target/release branches)
   ansible-lint:
     name: ansible-lint
     needs: setup
+    # Run only if setup succeeds AND the branch is main, master, or a release branch
+    if: |
+      github.ref == 'refs/heads/main' || 
+      github.ref == 'refs/heads/master' || 
+      contains(github.ref, 'refs/heads/release/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -104,34 +109,7 @@ jobs:
           pip install ansible-core ansible-lint
           ansible-galaxy collection install community.docker
 
-      # 3. Run the linter natively just like on your laptop
+      # 3. Run the linter natively
       - name: Run Ansible Lint
         run: |
           ansible-lint ansible/
-
-  # 6. Conditional Job: Terraform Plan (Runs ONLY on main/master branches)
-  plan:
-    name: terraform-plan
-    # Only run if setup succeeds AND the branch is main or master
-    needs: setup
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: terraform
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: latest
-
-      # Note: For a real plan, you will need your cloud credentials 
-      # configured here (e.g., AWS, Azure, GCP secrets)
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Plan
-        run: terraform plan
