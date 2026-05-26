@@ -191,13 +191,12 @@ The VM is unreachable. Walk through the following checks in order:
 
 The CI/CD pipeline runs on push events only. Whenever any branch is pushed, it checks for `terraform fmt`, validation, and tfsec.
 
-<!-- replace with pipeline screenshot -->
-<image>
+<img width="383" height="187" alt="{4BD1E762-0C04-42AC-B434-60F0A937F5F4}" src="https://github.com/user-attachments/assets/eb9d16cd-7156-4d4c-9811-cf633b4eed29" />
 
 Once a PR is merged it will additionally trigger the Ansible lint as well.
 
-<!-- replace with pipeline screenshot -->
-<image>
+<img width="385" height="192" alt="{CBA61C6D-7915-4A3B-A225-24853D272C01}" src="https://github.com/user-attachments/assets/354b812f-c9d6-498f-82f8-dab7b984176f" />
+
 
 ---
 
