@@ -93,10 +93,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Ansible Lint
-        uses: ansible/ansible-lint-action@v6
-        # Optional: points to your ansible directory if it's not at the root
-        # with:
-        #   targets: "ansible/" 
+        uses: ansible/ansible-lint@main  # Fixed repository name & branch pin
+        with:
+          working_directory: "ansible"   # Points the linter to your ansible folder
 
   # 6. Conditional Job: Terraform Plan (Runs ONLY on main/master branches)
   plan:
