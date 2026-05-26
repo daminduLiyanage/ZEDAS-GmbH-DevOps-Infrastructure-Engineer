@@ -46,5 +46,5 @@ resource "azurerm_storage_container" "tfstate" {
   name                  = var.container_name
   storage_account_name  = var.storage_account_name
   container_access_type = "private"
-  depends_on = [ azurerm_storage_account.backend_sa ]
+  depends_on            = [azurerm_storage_account.backend_sa]
 }

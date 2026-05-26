@@ -12,15 +12,15 @@
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
   become: true
-  check_mode: no  # <-- Forces key integration during dry-runs
+  check_mode: false # <-- Forces key integration during dry-runs
 
 - name: Add Docker apt repository
   ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
     state: present
-    update_cache: yes
+    update_cache: true
   become: true
-  check_mode: no  # <-- Forces repo listing to write during dry-runs
+  check_mode: false # <-- Forces repo listing to write during dry-runs
 
 - name: Install Docker packages
   ansible.builtin.apt:
@@ -35,15 +35,15 @@
   ansible.builtin.service:
     name: docker
     state: started
-    enabled: yes
+    enabled: true
   become: true
-  ignore_errors: "{{ ansible_check_mode }}"  # <-- Avoids service start during dry-runs, but allows it during normal runs
+  ignore_errors: "{{ ansible_check_mode }}" # <-- Avoids service start during dry-runs, but allows it during normal runs
 
 - name: Add deploy user to docker group
   ansible.builtin.user:
-    name: "{{ deploy_user }}"
+    name: "{{ common_deploy_user }}"
     groups: docker
-    append: yes
+    append: true
   become: true
 
 # --- CONNECTION RESET FOR PERMISSIONS ---
@@ -54,8 +54,8 @@
 - name: Install compatible Python docker SDK packages via pip3
   ansible.builtin.pip:
     name:
-      - "docker==6.1.3"
-      - "requests==2.31.0"
+      - docker==6.1.3
+      - requests==2.31.0
     executable: pip3
   become: true
 
@@ -73,5 +73,5 @@
     state: started
     restart_policy: unless-stopped
     published_ports:
-      - "80:80"
+      - 80:80
   ignore_errors: "{{ ansible_check_mode }}"

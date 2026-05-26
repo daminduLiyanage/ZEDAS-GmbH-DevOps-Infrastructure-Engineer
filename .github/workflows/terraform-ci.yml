@@ -1,0 +1,115 @@
+name: Infrastructure & Configuration CI
+
+on:
+  push:
+    branches: [ main, master, '**/release/**', '**/feature/**', '**/bugfix/**' ]
+
+jobs:
+  # 1. The dedicated Setup Job
+  setup:
+    name: terraform-setup
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+
+      - name: Show terraform version
+        run: terraform -version
+
+  # 2. Parallel Job: Format Check
+  fmt:
+    name: terraform-fmt
+    needs: setup
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+
+      - name: Terraform fmt (check)
+        run: terraform fmt -check -recursive
+
+  # 3. Parallel Job: Validation
+  validate:
+    name: terraform-validate
+    needs: setup
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+
+      - name: Terraform init (no backend)
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        run: terraform validate
+
+  # 4. Parallel Job: Security Scan
+  tfsec:
+    name: terraform-tfsec
+    needs: setup
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run tfsec security scan (docker)
+        run: |
+          docker run --rm -v "${{ github.workspace }}/terraform":/src aquasec/tfsec:latest /src
+
+  # 5. Conditional Job: Ansible Lint (Runs ONLY on merge target/release branches)
+  ansible-lint:
+    name: ansible-lint
+    needs: setup
+    # Run only if setup succeeds AND the branch is main, master, or a release branch
+    if: |
+      github.ref == 'refs/heads/main' || 
+      github.ref == 'refs/heads/master' || 
+      contains(github.ref, 'refs/heads/release/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1. Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 2. Install ansible, the linter, and the docker collection together
+      - name: Install Ansible, Linter, and Collections
+        run: |
+          pip install ansible-core ansible-lint
+          ansible-galaxy collection install community.docker
+
+      # 3. Run the linter natively
+      - name: Run Ansible Lint
+        run: |
+          ansible-lint ansible/

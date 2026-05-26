@@ -3,10 +3,10 @@
 
 - name: Force a completely fresh apt repository sync
   ansible.builtin.apt:
-    update_cache: yes
-    force_apt_get: yes
+    update_cache: true
+    force_apt_get: true
   become: true
-  check_mode: no  # <-- Forces the dry-run to actually build the cache map
+  check_mode: false # <-- Forces the dry-run to actually build the cache map
 
 - name: Ensure common packages are installed
   ansible.builtin.apt:
@@ -16,27 +16,27 @@
 
 - name: Create deploy user
   ansible.builtin.user:
-    name: "{{ deploy_user }}"
+    name: "{{ common_deploy_user }}"
     groups: sudo
     shell: /bin/bash
-    createhome: yes
+    createhome: true
     state: present
   become: true
 
 - name: Ensure .ssh directory exists for deploy user
   ansible.builtin.file:
-    path: "/home/{{ deploy_user }}/.ssh"
+    path: /home/{{ common_deploy_user }}/.ssh
     state: directory
-    owner: "{{ deploy_user }}"
-    group: "{{ deploy_user }}"
-    mode: '0700'
+    owner: "{{ common_deploy_user }}"
+    group: "{{ common_deploy_user }}"
+    mode: "0700"
   become: true
 
 - name: Install authorized keys for deploy user
   ansible.builtin.copy:
     src: authorized_keys
-    dest: "/home/{{ deploy_user }}/.ssh/authorized_keys"
-    owner: "{{ deploy_user }}"
-    group: "{{ deploy_user }}"
-    mode: '0600'
+    dest: /home/{{ common_deploy_user }}/.ssh/authorized_keys
+    owner: "{{ common_deploy_user }}"
+    group: "{{ common_deploy_user }}"
+    mode: "0600"
   become: true
