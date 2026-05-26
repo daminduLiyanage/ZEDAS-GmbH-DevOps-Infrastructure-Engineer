@@ -41,7 +41,7 @@
 
 - name: Add deploy user to docker group
   ansible.builtin.user:
-    name: "{{ deploy_user }}"
+    name: "{{ common_deploy_user }}"
     groups: docker
     append: true
   become: true
