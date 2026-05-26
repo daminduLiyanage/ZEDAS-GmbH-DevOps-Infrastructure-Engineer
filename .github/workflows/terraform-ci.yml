@@ -1,35 +1,13 @@
 name: Terraform CI
+
 on:
   push:
     branches: [ main, master, '**/feature/**', '**/bugfix/**' ]
-  pull_request:
-    branches: [ main, master ]
 
 jobs:
+  # 1. The dedicated Setup Job
   setup:
     name: terraform-setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: latest
-
-      - name: Show terraform version
-        run: terraform -version
-
-      - name: Cache .terraform directory
-        uses: actions/cache@v4
-        with:
-          path: terraform/.terraform
-          key: terraform-providers-${{ runner.os }}-v1
-
-  checks:
-    name: fmt / validate / tfsec
-    needs: setup
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -46,14 +24,60 @@ jobs:
       - name: Show terraform version
         run: terraform -version
 
+  # 2. Parallel Job: Format Check
+  fmt:
+    name: terraform-fmt
+    needs: setup
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+
       - name: Terraform fmt (check)
         run: terraform fmt -check -recursive
+
+  # 3. Parallel Job: Validation
+  validate:
+    name: terraform-validate
+    needs: setup
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
 
       - name: Terraform init (no backend)
         run: terraform init -backend=false
 
       - name: Terraform validate
         run: terraform validate
+
+  # 4. Parallel Job: Security Scan
+  tfsec:
+    name: terraform-tfsec
+    needs: setup
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Run tfsec security scan (docker)
         run: |
