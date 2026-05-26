@@ -12,7 +12,7 @@
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
   become: true
-  check_mode: false # <-- Forces key integration during dry-runs
+  check_mode: false
 
 - name: Add Docker apt repository
   ansible.builtin.apt_repository:
@@ -20,7 +20,7 @@
     state: present
     update_cache: true
   become: true
-  check_mode: false # <-- Forces repo listing to write during dry-runs
+  check_mode: false # write during dry-runs
 
 - name: Install Docker packages
   ansible.builtin.apt:
@@ -37,7 +37,7 @@
     state: started
     enabled: true
   become: true
-  ignore_errors: "{{ ansible_check_mode }}" # <-- Avoids service start during dry-runs, but allows it during normal runs
+  ignore_errors: "{{ ansible_check_mode }}" # check mode only
 
 - name: Add deploy user to docker group
   ansible.builtin.user:
@@ -46,7 +46,7 @@
     append: true
   become: true
 
-# --- CONNECTION RESET FOR PERMISSIONS ---
+# Connection reset for permissions
 - name: Reset SSH connection to apply docker group membership instantly
   ansible.builtin.meta: reset_connection
 
@@ -59,7 +59,7 @@
     executable: pip3
   become: true
 
-# --- TARGET APPLICATION DEPLOYMENT ---
+# --- TARGET DEPLOYMENT ---
 - name: Pull nginx:alpine image
   community.docker.docker_image:
     name: nginx:alpine

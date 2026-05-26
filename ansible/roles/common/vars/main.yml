@@ -1,4 +1,4 @@
 ---
 # variables for the common role
 common_deploy_user: zedasadmin
-# You can override this with -e common_deploy_user=... when running the playbook
+# To override use -e common_deploy_user=... when running the playbook

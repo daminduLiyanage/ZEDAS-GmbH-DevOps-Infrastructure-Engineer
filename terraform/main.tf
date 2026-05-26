@@ -1,6 +1,3 @@
-// Backend is configured via `backend.hcl` and supplied to `terraform init` with
-//   terraform init -backend-config=backend.hcl
-// Main infrastructure resources: resource group, vnet, subnet, nsg, public IP, NIC, and VM
 terraform {
   backend "azurerm" {}
 }
@@ -80,15 +77,12 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-
-
 resource "tls_private_key" "generated" {
-  # FIX 1: Changed name to "generated" to match your VM block
-  # FIX 2: Changed to '== 0'. We only generate a key if the user DID NOT provide one.
   count     = length(trimspace(var.admin_ssh_public_key)) == 0 ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 4096
 }
+
 resource "azurerm_linux_virtual_machine" "vm" {
   name                = "${var.main_resource_group_name}-vm"
   resource_group_name = azurerm_resource_group.rg.name
