@@ -2,10 +2,10 @@ name: Infrastructure & Configuration CI
 
 on:
   push:
-    branches: [ main, master, '**/release/**', '**/feature/**', '**/bugfix/**' ]
+    branches: [ '**' ]
 
 jobs:
-  # 1. The dedicated Setup Job
+  # 1. Setup Job
   setup:
     name: terraform-setup
     runs-on: ubuntu-latest
@@ -87,7 +87,6 @@ jobs:
   ansible-lint:
     name: ansible-lint
     needs: setup
-    # Run only if setup succeeds AND the branch is main, master, or a release branch
     if: |
       github.ref == 'refs/heads/main' || 
       github.ref == 'refs/heads/master' || 
