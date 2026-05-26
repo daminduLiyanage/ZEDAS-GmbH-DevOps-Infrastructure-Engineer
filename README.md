@@ -1,3 +1,4 @@
+Backend is configured via `backend.hcl` and supplied to `terraform init` with
 terraform init -backend-config=backend.hcl 
 
 terraform apply --auto-approve

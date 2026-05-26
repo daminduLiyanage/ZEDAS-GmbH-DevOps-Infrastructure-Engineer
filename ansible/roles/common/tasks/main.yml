@@ -1,12 +1,11 @@
 ---
-# Baseline setup for Ubuntu Jammy
 
 - name: Force a completely fresh apt repository sync
   ansible.builtin.apt:
     update_cache: true
     force_apt_get: true
   become: true
-  check_mode: false # <-- Forces the dry-run to actually build the cache map
+  check_mode: false
 
 - name: Ensure common packages are installed
   ansible.builtin.apt:

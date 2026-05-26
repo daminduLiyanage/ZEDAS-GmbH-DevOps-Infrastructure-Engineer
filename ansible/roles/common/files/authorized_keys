@@ -1,3 +1,1 @@
-# Place the public key(s) that should be authorized for the deploy user here
-# Example (replace with your actual public key):
-# ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCy... user@example.com
+# Place the public key in ansible/keys/id_rsa

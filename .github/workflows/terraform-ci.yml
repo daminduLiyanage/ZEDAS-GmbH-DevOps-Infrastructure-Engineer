@@ -83,7 +83,7 @@ jobs:
         run: |
           docker run --rm -v "${{ github.workspace }}/terraform":/src aquasec/tfsec:latest /src
 
-  # 5. Conditional Job: Ansible Lint (Runs ONLY on merge target/release branches)
+  # 5. Conditional Job: Ansible Lint (Runs ONLY on merge target)
   ansible-lint:
     name: ansible-lint
     needs: setup
@@ -97,19 +97,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # 2. Install ansible, the linter, and the docker collection together
       - name: Install Ansible, Linter, and Collections
         run: |
           pip install ansible-core ansible-lint
           ansible-galaxy collection install community.docker
 
-      # 3. Run the linter natively
       - name: Run Ansible Lint
         run: |
           ansible-lint ansible/
