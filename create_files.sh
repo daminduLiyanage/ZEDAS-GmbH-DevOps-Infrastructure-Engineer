@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# This script generates the necessary secret files for Ansible and Terraform to work together
-# IMPORTANT NOTE: backend.hcl details must be omitted from version control, however for demo purposes I will include it here.
+# This script generates the necessary secret file templates (with no actualdata) for Ansible and Terraform to work together
 
 # Exit for non-zero
 set -e
@@ -46,7 +45,7 @@ container_name       = "#"
 key                  = "terraform.tfstate"
 EOF
 
-echo -e "${YELLOW}terraform/backend.hcl created${NC}"
+echo -e "${YELLOW}terraform/backend.hcl created. Insert values manually.${NC}"
 
 
 echo "All files successfully generated!"
