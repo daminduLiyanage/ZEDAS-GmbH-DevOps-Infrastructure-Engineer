@@ -92,10 +92,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Force-install the required collection directly onto the GitHub runner
+      - name: Install Ansible Docker Collection
+        run: |
+          ansible-galaxy collection install community.docker
+
       - name: Run Ansible Lint
-        uses: ansible/ansible-lint@main  # Fixed repository name & branch pin
+        uses: ansible/ansible-lint@main
         with:
-          working_directory: "ansible"   # Points the linter to your ansible folder
+          working_directory: "ansible"
 
   # 6. Conditional Job: Terraform Plan (Runs ONLY on main/master branches)
   plan:
